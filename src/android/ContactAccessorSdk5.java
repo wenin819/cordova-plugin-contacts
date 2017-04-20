@@ -200,13 +200,15 @@ public class ContactAccessorSdk5 extends ContactAccessor {
         // Create a set of unique ids
         Set<String> contactIds = new HashSet<String>();
         int idColumn = -1;
-        while (idCursor.moveToNext()) {
-            if (idColumn < 0) {
-                idColumn = idCursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
+        if(null != idCursor) {
+            while (idCursor.moveToNext()) {
+                if (idColumn < 0) {
+                    idColumn = idCursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
+                }
+                contactIds.add(idCursor.getString(idColumn));
             }
-            contactIds.add(idCursor.getString(idColumn));
+            idCursor.close();
         }
-        idCursor.close();
 
         // Build a query that only looks at ids
         WhereOptions idOptions = buildIdClause(contactIds, searchTerm, hasPhoneNumber);
@@ -290,10 +292,13 @@ public class ContactAccessorSdk5 extends ContactAccessor {
                 idOptions.getWhereArgs(),
                 ContactsContract.Data.CONTACT_ID + " ASC");
 
-        JSONArray contacts = populateContactArray(limit, populate, c);
+        JSONArray contacts = new JSONArray();
+        if(null != c) {
+            contacts = populateContactArray(limit, populate, c);
 
-        if (!c.isClosed()) {
-            c.close();
+            if (!c.isClosed()) {
+                c.close();
+            }
         }
         return contacts;
     }
@@ -326,7 +331,7 @@ public class ContactAccessorSdk5 extends ContactAccessor {
 
         JSONArray contacts = populateContactArray(1, populate, c);
 
-        if (!c.isClosed()) {
+        if (null != c && !c.isClosed()) {
             c.close();
         }
 
